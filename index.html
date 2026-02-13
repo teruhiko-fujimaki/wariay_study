@@ -152,9 +152,9 @@
     <h1>小学校５年算数：割合・小数・分数</h1>
 
     <div class="controls-group">
-        <label class="switch-label"><input type="checkbox" id="chk-percent" checked> パーセント</label>
-        <label class="switch-label"><input type="checkbox" id="chk-decimal" checked> 小数</label>
-        <label class="switch-label"><input type="checkbox" id="chk-fraction" checked> 分数</label>
+        <label class="switch-label"><input type="checkbox" id="chk-percent"> パーセント</label>
+        <label class="switch-label"><input type="checkbox" id="chk-decimal"> 小数</label>
+        <label class="switch-label"><input type="checkbox" id="chk-fraction"> 分数</label>
     </div>
 
     <div class="display-area">
@@ -225,13 +225,13 @@
         }
 
         // 5. 表示・非表示の反映
-        dPercent.style.display = chkP.checked ? "inline-block" : "none";
-        dDecimal.style.display = chkD.checked ? "inline-block" : "none";
-        dFraction.style.display = chkF.checked ? "inline-block" : "none";
-
+        dPercent.style.opacity = chkP.checked ? "1" : "0";
+        dDecimal.style.opacity = chkD.checked ? "1" : "0";
+        dFraction.style.opacity = chkF.checked ? "1" : "0";        
+        
         // ＝（イコール）の表示制御
-        eq1.style.display = (chkP.checked && (chkD.checked || chkF.checked)) ? "inline-block" : "none";
-        eq2.style.display = (chkD.checked && chkF.checked) ? "inline-block" : "none";
+        eq1.style.opacity = (chkP.checked && (chkD.checked || chkF.checked)) ? "1" : "0";
+        eq2.style.opacity = (chkD.checked && chkF.checked) ? "1" : "0";
     }
 
     // イベント登録
