@@ -1,0 +1,247 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>小学校5年算数：割合・小数・分数学習ツール</title>
+    <style>
+        :root {
+            --bg-grid: #e5e5e5;
+        }
+        body {
+            font-family: 'Helvetica Neue', Arial, 'Hiragino Kaku Gothic ProN', 'Meiryo', sans-serif;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            min-height: 100vh;
+            margin: 0;
+            background-color: #f8f9fa;
+            background-image: 
+                linear-gradient(var(--bg-grid) 1px, transparent 1px),
+                linear-gradient(90deg, var(--bg-grid) 1px, transparent 1px);
+            background-size: 20px 20px;
+        }
+
+        .container {
+            text-align: center;
+            background: rgba(255, 255, 255, 0.98);
+            padding: 30px;
+            border-radius: 20px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.1);
+            width: 90%;
+            max-width: 700px;
+        }
+
+        h1 {
+            color: #333;
+            margin-bottom: 20px;
+            font-size: 22px;
+        }
+
+        /* スイッチエリア（横並び） */
+        .controls-group {
+            margin-bottom: 20px;
+            display: flex;
+            justify-content: center;
+            gap: 20px;
+            flex-wrap: wrap;
+        }
+
+        .switch-label {
+            display: flex;
+            align-items: center;
+            font-size: 16px;
+            color: #444;
+            cursor: pointer;
+            background: #eee;
+            padding: 8px 15px;
+            border-radius: 50px;
+            transition: background 0.2s;
+        }
+
+        .switch-label:hover {
+            background: #e0e0e0;
+        }
+
+        .switch-label input {
+            margin-right: 8px;
+            width: 18px;
+            height: 18px;
+        }
+
+        /* 数値表示エリア */
+        .display-area {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            gap: 15px;
+            font-size: 40px;
+            font-weight: bold;
+            height: 100px;
+            margin-bottom: 20px;
+            color: #333;
+        }
+
+        .val-unit {
+            transition: opacity 0.2s;
+            display: flex;
+            align-items: center;
+        }
+
+        /* 分数の見た目 */
+        .fraction {
+            display: inline-flex;
+            flex-direction: column;
+            vertical-align: middle;
+            align-items: center;
+            font-size: 0.8em;
+            line-height: 1;
+            margin: 0 5px;
+        }
+        .fraction .num { border-bottom: 2px solid #333; padding: 2px; }
+        .fraction .den { padding: 2px; }
+
+        /* グラフエリア */
+        .graph-container {
+            width: 100%;
+            margin-bottom: 30px;
+            display: flex;
+            justify-content: center;
+        }
+
+        #bar-graph {
+            width: 100%;
+            max-width: 600px;
+            height: 120px;
+            display: flex;
+            border: 3px solid #333;
+            background-color: #0000ff; /* 青（残り） */
+            overflow: hidden;
+            border-radius: 8px;
+        }
+
+        #red-part {
+            background-color: #ff0000;
+            width: 50%;
+        }
+
+        /* スライダー */
+        .slider-container {
+            width: 100%;
+            max-width: 600px;
+            margin: 0 auto;
+        }
+
+        input[type="range"] {
+            width: 100%;
+            height: 20px;
+            cursor: pointer;
+        }
+
+        .instruction {
+            margin-top: 15px;
+            font-weight: bold;
+            color: #666;
+        }
+    </style>
+</head>
+<body>
+
+<div class="container">
+    <h1>小学校５年算数：割合・小数・分数</h1>
+
+    <div class="controls-group">
+        <label class="switch-label"><input type="checkbox" id="chk-percent" checked> パーセント</label>
+        <label class="switch-label"><input type="checkbox" id="chk-decimal" checked> 小数</label>
+        <label class="switch-label"><input type="checkbox" id="chk-fraction" checked> 分数</label>
+    </div>
+
+    <div class="display-area">
+        <span id="disp-percent" class="val-unit">50%</span>
+        <span id="eq1" class="val-unit">＝</span>
+        <span id="disp-decimal" class="val-unit">0.5</span>
+        <span id="eq2" class="val-unit">＝</span>
+        <span id="disp-fraction" class="val-unit">
+            <div class="fraction"><div class="num">1</div><div class="den">2</div></div>
+        </span>
+    </div>
+
+    <div class="graph-container">
+        <div id="bar-graph">
+            <div id="red-part"></div>
+        </div>
+    </div>
+
+    <div class="slider-container">
+        <input type="range" id="ratio-slider" min="0" max="100" value="50">
+        <div class="instruction">スライダーを動かして割合を調べよう</div>
+    </div>
+</div>
+
+<script>
+    const slider = document.getElementById('ratio-slider');
+    const redPart = document.getElementById('red-part');
+    
+    // 表示要素
+    const dPercent = document.getElementById('disp-percent');
+    const dDecimal = document.getElementById('disp-decimal');
+    const dFraction = document.getElementById('disp-fraction');
+    const eq1 = document.getElementById('eq1');
+    const eq2 = document.getElementById('eq2');
+
+    // チェックボックス
+    const chkP = document.getElementById('chk-percent');
+    const chkD = document.getElementById('chk-decimal');
+    const chkF = document.getElementById('chk-fraction');
+
+    // 最大公約数を求める関数（約分用）
+    function gcd(a, b) {
+        return b === 0 ? a : gcd(b, a % b);
+    }
+
+    function updateView() {
+        const val = parseInt(slider.value);
+        
+        // 1. グラフ更新
+        redPart.style.width = val + '%';
+
+        // 2. パーセント更新
+        dPercent.textContent = val + '%';
+
+        // 3. 小数更新 (小数点第2位まで表示、0.50などは0.5にする)
+        dDecimal.textContent = parseFloat((val / 100).toFixed(2));
+
+        // 4. 分数更新 (約分する)
+        if (val === 0) {
+            dFraction.innerHTML = "0";
+        } else if (val === 100) {
+            dFraction.innerHTML = "1";
+        } else {
+            const common = gcd(val, 100);
+            const num = val / common;
+            const den = 100 / common;
+            dFraction.innerHTML = `<div class="fraction"><div class="num">${num}</div><div class="den">${den}</div></div>`;
+        }
+
+        // 5. 表示・非表示の反映
+        dPercent.style.display = chkP.checked ? "inline-block" : "none";
+        dDecimal.style.display = chkD.checked ? "inline-block" : "none";
+        dFraction.style.display = chkF.checked ? "inline-block" : "none";
+
+        // ＝（イコール）の表示制御
+        eq1.style.display = (chkP.checked && (chkD.checked || chkF.checked)) ? "inline-block" : "none";
+        eq2.style.display = (chkD.checked && chkF.checked) ? "inline-block" : "none";
+    }
+
+    // イベント登録
+    [slider, chkP, chkD, chkF].forEach(el => {
+        el.addEventListener('input', updateView);
+    });
+
+    // 初期実行
+    updateView();
+</script>
+
+</body>
+</html>
